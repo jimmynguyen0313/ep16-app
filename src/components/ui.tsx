@@ -13,7 +13,13 @@ const variants: Record<Variant, TextStyle> = {
   heading: { fontFamily: Fonts.serifBold, fontSize: 19, lineHeight: 24 },
   body: { fontFamily: Fonts.sans, fontSize: 16, lineHeight: 24 },
   small: { fontFamily: Fonts.sans, fontSize: 13, lineHeight: 18 },
-  label: { fontFamily: Fonts.sans, fontSize: 12, lineHeight: 16, letterSpacing: 0.6, textTransform: 'uppercase' },
+  label: {
+    fontFamily: Fonts.sans,
+    fontSize: 12,
+    lineHeight: 16,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+  },
 };
 
 export function T({ v = 'body', muted, style, ...rest }: TextProps & { v?: Variant; muted?: boolean }) {
@@ -22,7 +28,17 @@ export function T({ v = 'body', muted, style, ...rest }: TextProps & { v?: Varia
 }
 
 /** A poster that falls back to a colored card with the title when TMDB has no image. */
-export function Poster({ path, title, width, radius = Radius.sm }: { path: string | null; title: string; width: number; radius?: number }) {
+export function Poster({
+  path,
+  title,
+  width,
+  radius = Radius.sm,
+}: {
+  path: string | null;
+  title: string;
+  width: number;
+  radius?: number;
+}) {
   const c = useColors();
   const uri = imageUrl(path, width > 160 ? 'w500' : 'w342');
   const [failed, setFailed] = useState(false);
@@ -79,7 +95,11 @@ export function Chip({ label, selected, onPress }: { label: string; selected?: b
       accessibilityState={{ selected: !!selected }}
       style={({ pressed }) => [
         styles.chip,
-        { borderColor: selected ? c.ink : c.line, backgroundColor: selected ? c.ink : 'transparent', opacity: pressed ? 0.7 : 1 },
+        {
+          borderColor: selected ? c.ink : c.line,
+          backgroundColor: selected ? c.ink : 'transparent',
+          opacity: pressed ? 0.7 : 1,
+        },
       ]}>
       <Text style={[variants.small, { color: selected ? c.bg : c.muted }]}>{label}</Text>
     </Pressable>
@@ -108,7 +128,15 @@ export function Loading() {
   );
 }
 
-export function Message({ title, body, action }: { title: string; body?: string; action?: { label: string; onPress: () => void } }) {
+export function Message({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body?: string;
+  action?: { label: string; onPress: () => void };
+}) {
   const c = useColors();
   return (
     <Center>
@@ -122,7 +150,10 @@ export function Message({ title, body, action }: { title: string; body?: string;
           </T>
         ) : null}
         {action ? (
-          <Pressable accessibilityRole="button" onPress={action.onPress} style={[styles.button, { backgroundColor: c.accent }]}>
+          <Pressable
+            accessibilityRole="button"
+            onPress={action.onPress}
+            style={[styles.button, { backgroundColor: c.accent }]}>
             <Text style={[variants.body, { color: c.onAccent }]}>{action.label}</Text>
           </Pressable>
         ) : null}
@@ -132,11 +163,42 @@ export function Message({ title, body, action }: { title: string; body?: string;
 }
 
 const styles = StyleSheet.create({
-  fallback: { justifyContent: 'flex-end', padding: Space.sm, overflow: 'hidden' },
-  fallbackText: { color: '#fff', fontFamily: Fonts.serifBold, fontSize: 14, lineHeight: 17 },
-  chip: { borderWidth: 1, borderRadius: Radius.pill, paddingHorizontal: Space.md, paddingVertical: 6 },
+  fallback: {
+    justifyContent: 'flex-end',
+    padding: Space.sm,
+    overflow: 'hidden',
+  },
+  fallbackText: {
+    color: '#fff',
+    fontFamily: Fonts.serifBold,
+    fontSize: 14,
+    lineHeight: 17,
+  },
+  chip: {
+    borderWidth: 1,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Space.md,
+    paddingVertical: 6,
+  },
   tag: { borderRadius: Radius.pill, paddingHorizontal: 10, paddingVertical: 3 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Space.xl },
-  message: { borderWidth: 1, borderRadius: Radius.lg, padding: Space.xl, gap: Space.md, alignItems: 'center', maxWidth: 420 },
-  button: { borderRadius: Radius.md, paddingHorizontal: Space.lg, paddingVertical: 10, marginTop: Space.xs },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: Space.xl,
+  },
+  message: {
+    borderWidth: 1,
+    borderRadius: Radius.lg,
+    padding: Space.xl,
+    gap: Space.md,
+    alignItems: 'center',
+    maxWidth: 420,
+  },
+  button: {
+    borderRadius: Radius.md,
+    paddingHorizontal: Space.lg,
+    paddingVertical: 10,
+    marginTop: Space.xs,
+  },
 });

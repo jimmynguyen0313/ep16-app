@@ -158,19 +158,39 @@ export function topCast(cast: AggregateCastMember[] | undefined, limit = 15): Ca
     .slice(0, limit)
     .map((m) => {
       const role = [...m.roles].sort((a, b) => b.episode_count - a.episode_count)[0];
-      return { id: m.id, name: m.name, profile_path: m.profile_path, character: role?.character ?? '', episodes: m.total_episode_count };
+      return {
+        id: m.id,
+        name: m.name,
+        profile_path: m.profile_path,
+        character: role?.character ?? '',
+        episodes: m.total_episode_count,
+      };
     });
 }
 
 export const yearOf = (date?: string | null) => (date && /^\d{4}/.test(date) ? date.slice(0, 4) : '');
 
-export function imageUrl(path: string | null | undefined, size: 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'h632' = 'w342') {
+export function imageUrl(
+  path: string | null | undefined,
+  size: 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'h632' = 'w342',
+) {
   return path ? `${TMDB_IMAGES}/${size}${path}` : null;
 }
 
 /** Stable color per title for poster placeholders. */
 export function placeholderColor(seed: string) {
-  const palette = ['#B0455C', '#3E5876', '#5A4892', '#784A30', '#2C7769', '#5A8549', '#A13A27', '#2C78B1', '#863B57', '#4E5E6C'];
+  const palette = [
+    '#B0455C',
+    '#3E5876',
+    '#5A4892',
+    '#784A30',
+    '#2C7769',
+    '#5A8549',
+    '#A13A27',
+    '#2C78B1',
+    '#863B57',
+    '#4E5E6C',
+  ];
   let h = 0;
   for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return palette[h % palette.length];

@@ -27,7 +27,11 @@ const queryClient = new QueryClient({
 export default function RootLayout() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
   const c = Colors[scheme];
-  const [loaded, error] = useFonts({ GowunBatang_400Regular, GowunBatang_700Bold, GowunDodum_400Regular });
+  const [loaded, error] = useFonts({
+    GowunBatang_400Regular,
+    GowunBatang_700Bold,
+    GowunDodum_400Regular,
+  });
 
   useEffect(() => {
     if (loaded || error) SplashScreen.hideAsync();
@@ -37,18 +41,32 @@ export default function RootLayout() {
   const base = scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navTheme = {
     ...base,
-    colors: { ...base.colors, background: c.bg, card: c.bg, text: c.ink, border: c.line, primary: c.jade },
+    colors: {
+      ...base.colors,
+      background: c.bg,
+      card: c.bg,
+      text: c.ink,
+      border: c.line,
+      primary: c.jade,
+    },
   };
 
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider value={navTheme}>
         <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-        <NativeTabs backgroundColor={c.bg} indicatorColor={c.surface2} tintColor={c.jade} labelStyle={{ selected: { color: c.ink } }}>
+        <NativeTabs
+          backgroundColor={c.bg}
+          indicatorColor={c.surface2}
+          tintColor={c.jade}
+          labelStyle={{ selected: { color: c.ink } }}>
           <NativeTabs.Trigger name="(browse)">
             <NativeTabs.Trigger.Label>Browse</NativeTabs.Trigger.Label>
             <NativeTabs.Trigger.Icon
-              sf={{ default: 'rectangle.stack', selected: 'rectangle.stack.fill' }}
+              sf={{
+                default: 'rectangle.stack',
+                selected: 'rectangle.stack.fill',
+              }}
               src={require('@/assets/images/tabIcons/home.png')}
             />
           </NativeTabs.Trigger>

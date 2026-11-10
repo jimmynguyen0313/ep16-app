@@ -1,6 +1,16 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { genreNames, imageUrl, isKdrama, kdramaCredits, placeholderColor, topCast, yearOf, type AggregateCastMember, type TvCredit } from './tmdb';
+import {
+  genreNames,
+  imageUrl,
+  isKdrama,
+  kdramaCredits,
+  placeholderColor,
+  topCast,
+  yearOf,
+  type AggregateCastMember,
+  type TvCredit,
+} from './tmdb';
 
 const credit = (over: Partial<TvCredit>): TvCredit => ({
   id: 1,
@@ -54,7 +64,16 @@ describe('topCast', () => {
     roles: roles.map(([character, episode_count]) => ({ character, episode_count })),
   });
   it('orders by billing and picks the main role', () => {
-    const out = topCast([m(2, 1, [['Friend', 16]]), m(1, 0, [['Young Ri', 2], ['Ri Jeong-hyeok', 16]])], 5);
+    const out = topCast(
+      [
+        m(2, 1, [['Friend', 16]]),
+        m(1, 0, [
+          ['Young Ri', 2],
+          ['Ri Jeong-hyeok', 16],
+        ]),
+      ],
+      5,
+    );
     expect(out.map((c) => c.id)).toEqual([1, 2]);
     expect(out[0].character).toBe('Ri Jeong-hyeok');
     expect(out[0].episodes).toBe(18);

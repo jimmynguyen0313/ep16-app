@@ -12,12 +12,22 @@ export default function ActorScreen() {
   const c = useColors();
   const { width } = useWindowDimensions();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const p = useQuery({ queryKey: ['person', id], queryFn: () => person(Number(id)) });
+  const p = useQuery({
+    queryKey: ['person', id],
+    queryFn: () => person(Number(id)),
+  });
   const [expanded, setExpanded] = useState(false);
   const dramas = useMemo(() => kdramaCredits(p.data?.tv_credits?.cast ?? []), [p.data]);
 
   if (p.isPending) return <Loading />;
-  if (p.isError) return <Message title="Couldn’t load this actor" body={p.error.message} action={{ label: 'Try again', onPress: () => p.refetch() }} />;
+  if (p.isError)
+    return (
+      <Message
+        title="Couldn’t load this actor"
+        body={p.error.message}
+        action={{ label: 'Try again', onPress: () => p.refetch() }}
+      />
+    );
 
   const a = p.data;
   const korean = a.also_known_as.find((n) => /[가-힣]/.test(n));
@@ -42,7 +52,10 @@ export default function ActorScreen() {
         </View>
       </View>
       {a.biography ? (
-        <Pressable onPress={() => setExpanded((e) => !e)} accessibilityRole="button" accessibilityHint={expanded ? 'Collapses the biography' : 'Shows the full biography'}>
+        <Pressable
+          onPress={() => setExpanded((e) => !e)}
+          accessibilityRole="button"
+          accessibilityHint={expanded ? 'Collapses the biography' : 'Shows the full biography'}>
           <T numberOfLines={expanded ? undefined : 4}>{a.biography}</T>
           {a.biography.length > 240 ? (
             <T v="small" style={{ color: c.jade, marginTop: 4 }}>
@@ -67,7 +80,11 @@ export default function ActorScreen() {
         keyExtractor={(d) => d.credit_id}
         style={{ backgroundColor: c.bg }}
         contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={{ alignSelf: 'center', width: contentWidth, paddingBottom: Space.xxl }}
+        contentContainerStyle={{
+          alignSelf: 'center',
+          width: contentWidth,
+          paddingBottom: Space.xxl,
+        }}
         columnWrapperStyle={{ gap, paddingHorizontal: Space.lg }}
         ListHeaderComponent={header}
         ListEmptyComponent={
@@ -84,25 +101,32 @@ export default function ActorScreen() {
 function CreditTile({ credit, width }: { credit: TvCredit; width: number }) {
   const year = yearOf(credit.first_air_date);
   return (
-    <Link href={{ pathname: '/drama/[id]', params: { id: String(credit.id) } }} asChild>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${credit.name}${year ? `, ${year}` : ''}${credit.character ? `, as ${credit.character}` : ''}`}
-        style={({ pressed }) => [{ width, marginBottom: Space.lg, opacity: pressed ? 0.75 : 1 }]}>
-        <Poster path={credit.poster_path} title={credit.name} width={width} />
-        <T v="small" numberOfLines={2} style={{ marginTop: 6 }}>
-          {credit.name}
-        </T>
-        <T v="small" muted numberOfLines={2}>
-          {[year, credit.character ? `as ${credit.character}` : ''].filter(Boolean).join(' · ')}
-        </T>
-      </Pressable>
-    </Link>
+    <View style={{ width, marginBottom: Space.lg }}>
+      <Link href={{ pathname: '/drama/[id]', params: { id: String(credit.id) } }} asChild>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${credit.name}${year ? `, ${year}` : ''}${credit.character ? `, as ${credit.character}` : ''}`}
+          style={({ pressed }) => ({ width, opacity: pressed ? 0.75 : 1 })}>
+          <Poster path={credit.poster_path} title={credit.name} width={width} />
+          <T v="small" numberOfLines={2} style={{ marginTop: 6 }}>
+            {credit.name}
+          </T>
+          <T v="small" muted numberOfLines={2}>
+            {[year, credit.character ? `as ${credit.character}` : ''].filter(Boolean).join(' · ')}
+          </T>
+        </Pressable>
+      </Link>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  header: { paddingHorizontal: Space.lg, paddingTop: Space.lg, paddingBottom: Space.lg, gap: Space.lg },
+  header: {
+    paddingHorizontal: Space.lg,
+    paddingTop: Space.lg,
+    paddingBottom: Space.lg,
+    gap: Space.lg,
+  },
   top: { flexDirection: 'row', alignItems: 'center', gap: Space.lg },
   titles: { flex: 1, minWidth: 0, gap: 2 },
 });
