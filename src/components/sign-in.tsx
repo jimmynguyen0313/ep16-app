@@ -1,28 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { T } from '@/components/ui';
 import { Fonts, Radius, Space, useColors } from '@/constants/theme';
-import { sendCode, verifyCode } from '@/lib/auth';
+import { MIN_PASSWORD, signInWithPassword, signUpWithPassword } from '@/lib/auth';
 import { hasSupabase } from '@/lib/supabase';
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Passwordless sign-in: enter email, then the code Supabase emails you. New emails create an account. */
+/** Email and password sign-in, with a switch to create an account. */
 export function SignIn({ title = 'Sign in to keep your diary', subtitle }: { title?: string; subtitle?: string }) {
   const c = useColors();
-  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const [cooldown, setCooldown] = useState(0);
-
-  useEffect(() => {
-    if (!cooldown) return;
-    const t = setTimeout(() => setCooldown((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [cooldown]);
+  const [notice, setNotice] = useState('');
 
   if (!hasSupabase()) {
     return (
@@ -33,35 +27,39 @@ export function SignIn({ title = 'Sign in to keep your diary', subtitle }: { tit
     );
   }
 
-  const send = async () => {
-    const value = email.trim().toLowerCase();
-    if (!EMAIL.test(value)) return setError('Enter a valid email address.');
+  const signup = mode === 'signup';
+
+  const submit = async () => {
+    const e = email.trim().toLowerCase();
+    if (!EMAIL.test(e)) return setError('Enter a valid email address.');
+    if (signup && password.length < MIN_PASSWORD)
+      return setError(`Use at least ${MIN_PASSWORD} characters for your password.`);
+    if (!password) return setError('Enter your password.');
     setBusy(true);
     setError('');
+    setNotice('');
     try {
-      await sendCode(value);
-      setEmail(value);
-      setStep('code');
-      setCooldown(60);
-    } catch (e) {
-      setError(friendly(e));
+      if (signup) {
+        const { needsConfirmation } = await signUpWithPassword(e, password);
+        if (needsConfirmation) {
+          setNotice('Check your email to confirm your account, then sign in.');
+          setMode('signin');
+        }
+      } else {
+        await signInWithPassword(e, password);
+      }
+      // On success the auth listener updates the session and the screen re-renders signed in.
+    } catch (err) {
+      setError(friendly(err));
     } finally {
       setBusy(false);
     }
   };
 
-  const verify = async () => {
-    const value = code.replace(/\D/g, '');
-    if (value.length < 6) return setError('Enter the code from the email.');
-    setBusy(true);
+  const switchMode = () => {
+    setMode(signup ? 'signin' : 'signup');
     setError('');
-    try {
-      await verifyCode(email, value);
-      // Success: the auth listener updates the session and the screen re-renders signed in.
-    } catch (e) {
-      setError(friendly(e));
-      setBusy(false);
-    }
+    setNotice('');
   };
 
   const input = [
@@ -71,99 +69,87 @@ export function SignIn({ title = 'Sign in to keep your diary', subtitle }: { tit
 
   return (
     <View style={styles.wrap}>
-      <T v="title">{title}</T>
-      {step === 'email' ? (
-        <>
-          <T muted>
-            {subtitle ??
-              'Enter your email and we’ll send you a sign-in code. No password needed, and a new email creates your account.'}
-          </T>
-          <TextInput
-            value={email}
-            onChangeText={setEmail}
-            placeholder="you@example.com"
-            placeholderTextColor={c.muted}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="email"
-            textContentType="emailAddress"
-            returnKeyType="send"
-            onSubmitEditing={send}
-            accessibilityLabel="Email address"
-            style={input}
-          />
-          <Button label="Send code" onPress={send} busy={busy} />
-        </>
-      ) : (
-        <>
-          <T muted>
-            We sent a code to <T style={{ fontFamily: Fonts.serifBold }}>{email}</T>. It expires in an hour.
-          </T>
-          <TextInput
-            value={code}
-            onChangeText={(t) => setCode(t.replace(/\D/g, '').slice(0, 10))}
-            placeholder="123456"
-            placeholderTextColor={c.muted}
-            keyboardType="number-pad"
-            autoComplete="one-time-code"
-            textContentType="oneTimeCode"
-            returnKeyType="done"
-            onSubmitEditing={verify}
-            accessibilityLabel="Sign-in code"
-            style={[input, styles.code]}
-            autoFocus
-          />
-          <Button label="Sign in" onPress={verify} busy={busy} />
-          <View style={styles.links}>
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => {
-                setStep('email');
-                setCode('');
-                setError('');
-              }}>
-              <T v="small" style={{ color: c.jade }}>
-                Use a different email
-              </T>
-            </Pressable>
-            <Pressable accessibilityRole="button" disabled={cooldown > 0 || busy} onPress={send}>
-              <T v="small" style={{ color: cooldown ? c.muted : c.jade }}>
-                {cooldown ? `Resend in ${cooldown}s` : 'Resend code'}
-              </T>
-            </Pressable>
-          </View>
-        </>
-      )}
+      <T v="title">{signup ? 'Create your account' : title}</T>
+      <T muted>
+        {signup
+          ? 'Your diary syncs to your account, so it’s on every device you sign in on.'
+          : (subtitle ?? 'Sign in with your email and password.')}
+      </T>
+      <TextInput
+        value={email}
+        onChangeText={setEmail}
+        placeholder="you@example.com"
+        placeholderTextColor={c.muted}
+        keyboardType="email-address"
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoComplete="email"
+        textContentType={signup ? 'username' : 'emailAddress'}
+        returnKeyType="next"
+        accessibilityLabel="Email address"
+        style={input}
+      />
+      <TextInput
+        value={password}
+        onChangeText={setPassword}
+        placeholder={signup ? `Password (at least ${MIN_PASSWORD} characters)` : 'Password'}
+        placeholderTextColor={c.muted}
+        secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
+        autoComplete={signup ? 'new-password' : 'current-password'}
+        textContentType={signup ? 'newPassword' : 'password'}
+        passwordRules={signup ? `minlength: ${MIN_PASSWORD};` : undefined}
+        returnKeyType="go"
+        onSubmitEditing={submit}
+        accessibilityLabel="Password"
+        style={input}
+      />
+      <Pressable
+        accessibilityRole="button"
+        disabled={busy}
+        onPress={submit}
+        style={({ pressed }) => [styles.button, { backgroundColor: c.accent, opacity: pressed || busy ? 0.7 : 1 }]}>
+        {busy ? (
+          <ActivityIndicator color={c.onAccent} />
+        ) : (
+          <Text style={{ color: c.onAccent, fontFamily: Fonts.sans, fontSize: 16 }}>
+            {signup ? 'Create account' : 'Sign in'}
+          </Text>
+        )}
+      </Pressable>
+
       {error ? (
         <T v="small" style={{ color: c.danger }} accessibilityRole="alert">
           {error}
         </T>
       ) : null}
-    </View>
-  );
-}
+      {notice ? (
+        <T v="small" style={{ color: c.jade }} accessibilityRole="alert">
+          {notice}
+        </T>
+      ) : null}
 
-function Button({ label, onPress, busy }: { label: string; onPress: () => void; busy?: boolean }) {
-  const c = useColors();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={onPress}
-      style={({ pressed }) => [styles.button, { backgroundColor: c.accent, opacity: pressed || busy ? 0.7 : 1 }]}>
-      {busy ? (
-        <ActivityIndicator color={c.onAccent} />
-      ) : (
-        <Text style={{ color: c.onAccent, fontFamily: Fonts.sans, fontSize: 16 }}>{label}</Text>
-      )}
-    </Pressable>
+      <Pressable accessibilityRole="button" onPress={switchMode} style={styles.switch}>
+        <T v="small" muted>
+          {signup ? 'Already have an account? ' : 'New to Ep.16? '}
+          <T v="small" style={{ color: c.jade }}>
+            {signup ? 'Sign in' : 'Create an account'}
+          </T>
+        </T>
+      </Pressable>
+    </View>
   );
 }
 
 function friendly(e: unknown): string {
   const msg = e instanceof Error ? e.message : String(e);
-  if (/expired|invalid/i.test(msg)) return 'That code didn’t work. Check it, or send a new one.';
+  if (/invalid login credentials/i.test(msg)) return 'That email and password don’t match. Check them and try again.';
+  if (/already registered|already exists/i.test(msg))
+    return 'An account with this email already exists. Sign in instead.';
+  if (/email not confirmed/i.test(msg)) return 'Confirm your email first. Check your inbox for the link from Supabase.';
+  if (/password should be|weak password/i.test(msg))
+    return `Choose a stronger password (at least ${MIN_PASSWORD} characters).`;
   if (/rate limit|too many|security purposes/i.test(msg)) return 'Too many attempts. Wait a minute, then try again.';
   if (/network|fetch/i.test(msg)) return 'Couldn’t reach the server. Check your connection.';
   return msg;
@@ -172,7 +158,6 @@ function friendly(e: unknown): string {
 const styles = StyleSheet.create({
   wrap: { gap: Space.md, width: '100%', maxWidth: 440, alignSelf: 'center' },
   input: { borderWidth: 1, borderRadius: Radius.md, paddingHorizontal: Space.md, paddingVertical: 12, fontSize: 17 },
-  code: { fontSize: 26, letterSpacing: 6, textAlign: 'center' },
   button: {
     borderRadius: Radius.md,
     paddingVertical: 13,
@@ -180,5 +165,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     minHeight: 48,
   },
-  links: { flexDirection: 'row', justifyContent: 'space-between' },
+  switch: { alignItems: 'center', paddingVertical: Space.sm },
 });

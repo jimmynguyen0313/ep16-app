@@ -56,12 +56,23 @@ export function useAuth() {
   return ctx;
 }
 
-export async function sendCode(email: string) {
-  const { error } = await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+export const MIN_PASSWORD = 8;
+
+/**
+ * Create an account with email and password. With "Confirm email" off in Supabase this
+ * signs the person straight in; with it on, Supabase emails a link first (needsConfirmation).
+ */
+export async function signUpWithPassword(email: string, password: string) {
+  const { data, error } = await supabase.auth.signUp({ email, password });
   if (error) throw error;
+  // Supabase returns a user with no identities when the email is already registered.
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    throw new Error('An account with this email already exists. Sign in instead.');
+  }
+  return { needsConfirmation: !data.session };
 }
 
-export async function verifyCode(email: string, code: string) {
-  const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
+export async function signInWithPassword(email: string, password: string) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 }

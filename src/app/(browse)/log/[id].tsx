@@ -45,7 +45,7 @@ export default function LogSheet() {
       <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
         <SignIn
           title="Sign in to log dramas"
-          subtitle={`Sign in to add ${show.data.name} to your diary. We’ll email you a code; a new email creates your account.`}
+          subtitle={`Sign in to add ${show.data.name} to your diary. New here? Create an account with your email and a password.`}
         />
       </ScrollView>
     );
