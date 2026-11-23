@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { Colors } from '@/constants/theme';
+import { AuthProvider } from '@/lib/auth';
 import { TmdbError } from '@/lib/tmdb';
 
 SplashScreen.preventAutoHideAsync();
@@ -53,32 +54,41 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider value={navTheme}>
-        <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
-        <NativeTabs
-          backgroundColor={c.bg}
-          indicatorColor={c.surface2}
-          tintColor={c.jade}
-          labelStyle={{ selected: { color: c.ink } }}>
-          <NativeTabs.Trigger name="(browse)">
-            <NativeTabs.Trigger.Label>Browse</NativeTabs.Trigger.Label>
-            <NativeTabs.Trigger.Icon
-              sf={{
-                default: 'rectangle.stack',
-                selected: 'rectangle.stack.fill',
-              }}
-              src={require('@/assets/images/tabIcons/home.png')}
-            />
-          </NativeTabs.Trigger>
-          <NativeTabs.Trigger name="about">
-            <NativeTabs.Trigger.Label>About</NativeTabs.Trigger.Label>
-            <NativeTabs.Trigger.Icon
-              sf={{ default: 'info.circle', selected: 'info.circle.fill' }}
-              src={require('@/assets/images/tabIcons/explore.png')}
-            />
-          </NativeTabs.Trigger>
-        </NativeTabs>
-      </ThemeProvider>
+      <AuthProvider>
+        <ThemeProvider value={navTheme}>
+          <StatusBar style={scheme === 'dark' ? 'light' : 'dark'} />
+          <NativeTabs
+            backgroundColor={c.bg}
+            indicatorColor={c.surface2}
+            tintColor={c.jade}
+            labelStyle={{ selected: { color: c.ink } }}>
+            <NativeTabs.Trigger name="(browse)">
+              <NativeTabs.Trigger.Label>Browse</NativeTabs.Trigger.Label>
+              <NativeTabs.Trigger.Icon
+                sf={{
+                  default: 'rectangle.stack',
+                  selected: 'rectangle.stack.fill',
+                }}
+                src={require('@/assets/images/tabIcons/home.png')}
+              />
+            </NativeTabs.Trigger>
+            <NativeTabs.Trigger name="diary">
+              <NativeTabs.Trigger.Label>Diary</NativeTabs.Trigger.Label>
+              <NativeTabs.Trigger.Icon
+                sf={{ default: 'book', selected: 'book.fill' }}
+                src={require('@/assets/images/tabIcons/explore.png')}
+              />
+            </NativeTabs.Trigger>
+            <NativeTabs.Trigger name="account">
+              <NativeTabs.Trigger.Label>Account</NativeTabs.Trigger.Label>
+              <NativeTabs.Trigger.Icon
+                sf={{ default: 'person.crop.circle', selected: 'person.crop.circle.fill' }}
+                src={require('@/assets/images/tabIcons/explore.png')}
+              />
+            </NativeTabs.Trigger>
+          </NativeTabs>
+        </ThemeProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { Image } from 'expo-image';
-import { Link, Stack, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
+import { StarText } from '@/components/stars';
 import { Headshot, Loading, Message, Poster, T, Tag } from '@/components/ui';
 import { Radius, Space, useColors } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
+import { STATUS_LABEL, useEntry } from '@/lib/diary';
 import { imageUrl, showDetail, topCast, yearOf } from '@/lib/tmdb';
 
 export default function DramaScreen() {
@@ -75,6 +78,8 @@ export default function DramaScreen() {
             </T>
           </View>
         </View>
+
+        <DiaryButton showId={d.id} />
 
         {d.genres.length ? (
           <View style={styles.tags}>
@@ -166,6 +171,52 @@ export default function DramaScreen() {
   );
 }
 
+/** "Add to diary", or the saved status and rating with a way to edit them. */
+function DiaryButton({ showId }: { showId: number }) {
+  const c = useColors();
+  const { session } = useAuth();
+  const { entry } = useEntry(showId);
+  const summary = entry
+    ? entry.status === 'watching' && entry.total_episodes
+      ? `Watching · episode ${entry.episodes_watched} of ${entry.total_episodes}`
+      : STATUS_LABEL[entry.status]
+    : null;
+  return (
+    <Pressable
+      onPress={() => router.push({ pathname: '/log/[id]', params: { id: String(showId) } })}
+      accessibilityRole="button"
+      accessibilityLabel={
+        entry ? `In your diary: ${summary}${entry.rating ? `, rated ${entry.rating}` : ''}. Edit` : 'Add to diary'
+      }
+      style={({ pressed }) => [
+        styles.diaryButton,
+        entry
+          ? { backgroundColor: c.surface, borderColor: c.line }
+          : { backgroundColor: c.accent, borderColor: c.accent },
+        { opacity: pressed ? 0.75 : 1 },
+      ]}>
+      {entry ? (
+        <>
+          <View style={{ flex: 1, gap: 2 }}>
+            <T v="label" muted>
+              In your diary
+            </T>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: Space.sm }}>
+              <T>{summary}</T>
+              <StarText rating={entry.rating} size={15} />
+            </View>
+          </View>
+          <T style={{ color: c.jade }}>Edit</T>
+        </>
+      ) : (
+        <T style={{ color: c.onAccent, textAlign: 'center', flex: 1 }}>
+          {session ? '+ Add to diary' : '+ Add to diary (sign in)'}
+        </T>
+      )}
+    </Pressable>
+  );
+}
+
 function Fact({ label, value }: { label: string; value?: string | null }) {
   return (
     <View style={styles.fact}>
@@ -204,4 +255,13 @@ const styles = StyleSheet.create({
     gap: Space.xl,
   },
   fact: { gap: 2, minWidth: 120 },
+  diaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: Radius.md,
+    paddingHorizontal: Space.lg,
+    paddingVertical: Space.md,
+    minHeight: 50,
+  },
 });

@@ -18,6 +18,16 @@ export default function BrowseLayout() {
       <Stack.Screen name="index" options={{ title: 'Ep.16', headerLargeTitle: true }} />
       <Stack.Screen name="drama/[id]" options={{ title: '' }} />
       <Stack.Screen name="actor/[id]" options={{ title: '' }} />
+      <Stack.Screen
+        name="log/[id]"
+        options={{
+          presentation: 'formSheet',
+          headerShown: false,
+          sheetAllowedDetents: [0.75, 1],
+          sheetGrabberVisible: true,
+          contentStyle: { backgroundColor: c.bg },
+        }}
+      />
     </Stack>
   );
 }
