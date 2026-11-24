@@ -67,7 +67,10 @@ function LogForm({ show: d, entry }: { show: ShowDetail; entry: DiaryEntry | und
   const set = (patch: Partial<EntryForm>) => setForm((f) => ({ ...f, ...patch }));
   const error = save.error ?? remove.error;
 
-  const onSave = () => save.mutate({ show: d, form }, { onSuccess: () => router.back() });
+  // Saving refetches the diary, which remounts this form (see the key above) before a
+  // mutate() onSuccess callback could run, so close the sheet from the awaited promise.
+  const onSave = () => save.mutateAsync({ show: d, form }).then(close, () => {});
+  const onRemove = () => remove.mutateAsync(d.id).then(close, () => {});
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
@@ -185,17 +188,17 @@ function LogForm({ show: d, entry }: { show: ShowDetail; entry: DiaryEntry | und
         </Pressable>
 
         {entry ? (
-          <Pressable
-            accessibilityRole="button"
-            disabled={remove.isPending}
-            onPress={() => remove.mutate(d.id, { onSuccess: () => router.back() })}
-            style={styles.remove}>
+          <Pressable accessibilityRole="button" disabled={remove.isPending} onPress={onRemove} style={styles.remove}>
             <T style={{ color: c.danger }}>{remove.isPending ? 'Removing…' : 'Remove from diary'}</T>
           </Pressable>
         ) : null}
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+function close() {
+  if (router.canGoBack()) router.back();
 }
 
 function StepButton({ label, a11y, onPress }: { label: string; a11y: string; onPress: () => void }) {

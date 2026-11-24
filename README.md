@@ -8,7 +8,7 @@ A diary for every K-drama you've watched, rated, and loved (or didn't). An iOS a
 |---|---|---|
 | 1 | Browse K-dramas, drama details, actor filmographies | ✅ |
 | 2 | Accounts (email and password) and diary sync with Supabase, account deletion | ✅ (Sign in with Apple before TestFlight) |
-| 3 | Rewatches, favorite actors, Wrapped, For you, date picker | Next |
+| 3 | Rewatches, favorite actors, Wrapped, For you, date picker | ✅ |
 | 4 | App icon, screenshots, privacy policy, TestFlight, App Store | |
 
 ## What works now
@@ -18,7 +18,11 @@ A diary for every K-drama you've watched, rated, and loved (or didn't). An iOS a
 - **Drama details:** backdrop, poster, Korean title, network, episode count, runtime, genres, synopsis and the cast with their characters.
 - **Actor pages:** photo, Korean name, biography and every K-drama TMDB credits them in, with their character, newest first.
 - **Accounts:** create an account with your email and a password, then sign in on any device.
-- **Diary:** add any drama with a status (Watched, Watching, Want to watch), a half-star rating, notes and episode progress. Synced to your account, with stats and filters in the Diary tab.
+- **Diary:** add any drama with a status (Watched, Watching, Want to watch), a half-star rating, notes and episode progress. Synced to your account, with stats and filters in the Diary tab, and the date you finished, started or added it picked from a calendar.
+- **Rewatches:** log watching a drama again, each time with its own date, rating and note.
+- **Favorite actors:** heart an actor on their page; favorites show at the top of the Diary tab.
+- **Wrapped:** your year in K-dramas: dramas finished, episodes, rewatches, average rating, busiest month, top genres, highest rated and the actors who kept showing up.
+- **For you:** suggestions on Browse from TMDB's recommendations for the dramas you rated 4 stars or more.
 - **Account:** sign out, or permanently delete your account and diary.
 - Light and dark themes, matching the original Ep.16 web diary.
 

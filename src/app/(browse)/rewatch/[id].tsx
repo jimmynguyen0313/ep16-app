@@ -106,7 +106,7 @@ function RewatchFormView({ showId, title, existing }: { showId: number; title: s
         <Pressable
           accessibilityRole="button"
           disabled={save.isPending}
-          onPress={() => save.mutate({ showId, id: existing?.id, form }, { onSuccess: () => router.back() })}
+          onPress={() => save.mutateAsync({ showId, id: existing?.id, form }).then(close, () => {})}
           style={({ pressed }) => [
             styles.primary,
             { backgroundColor: c.accent, opacity: pressed || save.isPending ? 0.7 : 1 },
@@ -124,7 +124,7 @@ function RewatchFormView({ showId, title, existing }: { showId: number; title: s
           <Pressable
             accessibilityRole="button"
             disabled={remove.isPending}
-            onPress={() => remove.mutate(existing.id, { onSuccess: () => router.back() })}
+            onPress={() => remove.mutateAsync(existing.id).then(close, () => {})}
             style={styles.remove}>
             <T style={{ color: c.danger }}>{remove.isPending ? 'Removing…' : 'Remove this rewatch'}</T>
           </Pressable>
@@ -132,6 +132,10 @@ function RewatchFormView({ showId, title, existing }: { showId: number; title: s
       </ScrollView>
     </KeyboardAvoidingView>
   );
+}
+
+function close() {
+  if (router.canGoBack()) router.back();
 }
 
 const styles = StyleSheet.create({
