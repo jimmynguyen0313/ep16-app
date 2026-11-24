@@ -46,9 +46,25 @@ export default function AccountScreen() {
         </Pressable>
       </View>
 
-      <T v="small" muted>
-        Version {Constants.expoConfig?.version ?? '1.0.0'}
-      </T>
+      <View style={styles.footer}>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => WebBrowser.openBrowserAsync('https://jimmynguyen0313.github.io/ep16/privacy/')}>
+          <T v="small" style={{ color: c.jade }}>
+            Privacy Policy
+          </T>
+        </Pressable>
+        <Pressable
+          accessibilityRole="link"
+          onPress={() => WebBrowser.openBrowserAsync('https://jimmynguyen0313.github.io/ep16/')}>
+          <T v="small" style={{ color: c.jade }}>
+            Help and contact
+          </T>
+        </Pressable>
+        <T v="small" muted>
+          Version {Constants.expoConfig?.version ?? '1.0.0'}
+        </T>
+      </View>
     </ScrollView>
   );
 }
@@ -152,4 +168,5 @@ const styles = StyleSheet.create({
   buttonText: { fontFamily: Fonts.sans, fontSize: 16 },
   link: { alignItems: 'center', paddingVertical: Space.sm },
   confirm: { borderWidth: 1, borderRadius: Radius.md, padding: Space.md, gap: Space.sm, marginTop: Space.sm },
+  footer: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: Space.lg },
 });

@@ -10,7 +10,7 @@ A diary for every K-drama you've watched, rated, and loved (or didn't). An iOS a
 | 2 | Accounts (email and password) and diary sync with Supabase, account deletion | ✅ |
 | 3 | Rewatches, favorite actors, Wrapped, For you, date picker | ✅ |
 | 4 | App icon, password reset, privacy policy, EAS build setup | ✅ |
-| 5 | Sign in with Apple, email sender, screenshots, TestFlight, App Store | Next |
+| 5 | Email sender, screenshots, TestFlight, App Store (Sign in with Apple optional) | Next |
 
 ## What works now
 
