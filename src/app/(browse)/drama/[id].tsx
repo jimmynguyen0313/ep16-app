@@ -37,7 +37,9 @@ export default function DramaScreen() {
   const year = yearOf(d.first_air_date);
   const runtime = d.episode_run_time?.[0];
   const cast = topCast(d.aggregate_credits?.cast);
-  const backdrop = imageUrl(d.backdrop_path, 'w780');
+  const backdrop = imageUrl(d.backdrop_path, width > 800 ? 'w1280' : 'w780');
+  // Full width always; on wide screens cap the height and let the image crop instead of shrinking.
+  const backdropHeight = Math.min(Math.round((width * 9) / 16), 440);
   const facts = [
     year,
     d.networks?.[0]?.name,
@@ -56,7 +58,7 @@ export default function DramaScreen() {
       {backdrop ? (
         <Image
           source={{ uri: backdrop }}
-          style={[styles.backdrop, { backgroundColor: c.surface2 }]}
+          style={{ width: '100%', height: backdropHeight, backgroundColor: c.surface2 }}
           contentFit="cover"
           transition={200}
           accessibilityIgnoresInvertColors
@@ -291,7 +293,6 @@ function Fact({ label, value }: { label: string; value?: string | null }) {
 }
 
 const styles = StyleSheet.create({
-  backdrop: { width: '100%', aspectRatio: 16 / 9, maxHeight: 360 },
   body: { alignSelf: 'center', paddingHorizontal: Space.lg, gap: Space.lg },
   top: {
     flexDirection: 'row',

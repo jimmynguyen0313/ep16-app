@@ -178,7 +178,7 @@ export const yearOf = (date?: string | null) => (date && /^\d{4}/.test(date) ? d
 
 export function imageUrl(
   path: string | null | undefined,
-  size: 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'h632' = 'w342',
+  size: 'w92' | 'w185' | 'w342' | 'w500' | 'w780' | 'w1280' | 'h632' = 'w342',
 ) {
   return path ? `${TMDB_IMAGES}/${size}${path}` : null;
 }
