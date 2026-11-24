@@ -105,7 +105,7 @@ export function useDiary() {
   const { session } = useAuth();
   const userId = session?.user.id;
   return useQuery({
-    queryKey: ['diary', userId],
+    queryKey: ['diary', userId, 'entries'],
     enabled: !!userId,
     staleTime: 0,
     queryFn: async () => {

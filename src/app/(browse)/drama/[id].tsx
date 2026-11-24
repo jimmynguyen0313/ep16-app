@@ -8,7 +8,9 @@ import { StarText } from '@/components/stars';
 import { Headshot, Loading, Message, Poster, T, Tag } from '@/components/ui';
 import { Radius, Space, useColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { formatDate } from '@/lib/dates';
 import { STATUS_LABEL, useEntry } from '@/lib/diary';
+import { useShowRewatches } from '@/lib/rewatches';
 import { imageUrl, showDetail, topCast, yearOf } from '@/lib/tmdb';
 
 export default function DramaScreen() {
@@ -80,6 +82,7 @@ export default function DramaScreen() {
         </View>
 
         <DiaryButton showId={d.id} />
+        <Rewatches showId={d.id} />
 
         {d.genres.length ? (
           <View style={styles.tags}>
@@ -217,6 +220,65 @@ function DiaryButton({ showId }: { showId: number }) {
   );
 }
 
+/** Rewatches of a drama in the diary, each tappable to edit, plus a button to log another. */
+function Rewatches({ showId }: { showId: number }) {
+  const c = useColors();
+  const { entry } = useEntry(showId);
+  const { rewatches } = useShowRewatches(showId);
+  if (!entry || (entry.status !== 'watched' && !rewatches.length)) return null;
+  const open = (rewatch?: number) =>
+    router.push({
+      pathname: '/rewatch/[id]',
+      params: rewatch ? { id: String(showId), rewatch: String(rewatch) } : { id: String(showId) },
+    });
+  return (
+    <View style={{ gap: Space.sm }}>
+      {rewatches.length ? (
+        <>
+          <T v="label" muted>
+            {`Rewatched ${rewatches.length === 1 ? 'once' : `${rewatches.length} times`}`}
+          </T>
+          <View style={[styles.rewatchList, { borderColor: c.line }]}>
+            {rewatches.map((r, i) => (
+              <Pressable
+                key={r.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Rewatched ${formatDate(r.watched_on)}${r.rating ? `, rated ${r.rating}` : ''}. Edit`}
+                onPress={() => open(r.id)}
+                style={({ pressed }) => [
+                  styles.rewatchRow,
+                  i ? { borderTopWidth: StyleSheet.hairlineWidth, borderColor: c.line } : null,
+                  { opacity: pressed ? 0.7 : 1 },
+                ]}>
+                <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: Space.sm }}>
+                    <T>{formatDate(r.watched_on)}</T>
+                    <StarText rating={r.rating} size={13} />
+                  </View>
+                  {r.note ? (
+                    <T v="small" muted numberOfLines={2}>
+                      {r.note}
+                    </T>
+                  ) : null}
+                </View>
+                <T v="small" style={{ color: c.jade }}>
+                  Edit
+                </T>
+              </Pressable>
+            ))}
+          </View>
+        </>
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => open()}
+        style={({ pressed }) => [styles.rewatchButton, { opacity: pressed ? 0.6 : 1 }]}>
+        <T style={{ color: c.jade }}>↻ Log a rewatch</T>
+      </Pressable>
+    </View>
+  );
+}
+
 function Fact({ label, value }: { label: string; value?: string | null }) {
   return (
     <View style={styles.fact}>
@@ -255,6 +317,15 @@ const styles = StyleSheet.create({
     gap: Space.xl,
   },
   fact: { gap: 2, minWidth: 120 },
+  rewatchList: { borderWidth: 1, borderRadius: Radius.md, overflow: 'hidden' },
+  rewatchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Space.md,
+    paddingHorizontal: Space.md,
+    paddingVertical: Space.sm + 2,
+  },
+  rewatchButton: { alignSelf: 'flex-start', paddingVertical: Space.xs },
   diaryButton: {
     flexDirection: 'row',
     alignItems: 'center',

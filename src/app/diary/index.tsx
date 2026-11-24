@@ -9,6 +9,7 @@ import { Space, useColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/dates';
 import { diaryStats, STATUS_LABEL, useDiary, type DiaryEntry, type Status } from '@/lib/diary';
+import { rewatchCounts, useRewatches } from '@/lib/rewatches';
 
 type Filter = 'all' | Status;
 const FILTERS: { key: Filter; label: string }[] = [
@@ -22,6 +23,8 @@ export default function DiaryScreen() {
   const c = useColors();
   const { session, ready } = useAuth();
   const diary = useDiary();
+  const rewatches = useRewatches();
+  const counts = useMemo(() => rewatchCounts(rewatches.data ?? []), [rewatches.data]);
   const [filter, setFilter] = useState<Filter>('all');
   const entries = useMemo(() => diary.data ?? [], [diary.data]);
   const shown = useMemo(
@@ -80,9 +83,13 @@ export default function DiaryScreen() {
       ListHeaderComponent={header}
       ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: c.line }]} />}
       refreshControl={
-        <RefreshControl refreshing={diary.isRefetching} onRefresh={() => void diary.refetch()} tintColor={c.muted} />
+        <RefreshControl
+          refreshing={diary.isRefetching}
+          onRefresh={() => void Promise.all([diary.refetch(), rewatches.refetch()])}
+          tintColor={c.muted}
+        />
       }
-      renderItem={({ item }) => <Row entry={item} />}
+      renderItem={({ item }) => <Row entry={item} rewatched={counts.get(item.show_id) ?? 0} />}
       ListEmptyComponent={
         entries.length ? (
           <T muted style={styles.pad}>
@@ -111,14 +118,16 @@ function Stat({ n, label }: { n: number | string; label: string }) {
   );
 }
 
-function Row({ entry: e }: { entry: DiaryEntry }) {
+function Row({ entry: e, rewatched }: { entry: DiaryEntry; rewatched: number }) {
   const c = useColors();
   const detail =
     e.status === 'watching'
       ? `Episode ${e.episodes_watched}${e.total_episodes ? ` of ${e.total_episodes}` : ''}`
       : e.status === 'want'
         ? STATUS_LABEL.want
-        : '';
+        : rewatched
+          ? `Watched ${rewatched + 1} times`
+          : '';
   return (
     <Pressable
       accessibilityRole="button"
