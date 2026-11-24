@@ -70,7 +70,7 @@ Accounts and the diary use [Supabase](https://supabase.com) (free tier).
 Builds run on [EAS](https://expo.dev/eas), so no Xcode is needed. You need an Apple Developer Program membership.
 
 1. `npx eas-cli login`, then `npx eas-cli init` to link the project to your Expo account.
-2. Add the three `EXPO_PUBLIC_*` values from `.env.local` as EAS environment variables for the `preview` and `production` environments (`npx eas-cli env:create`), since `.env.local` isn't uploaded.
+2. `npx eas-cli env:push --path .env.local --environment production --environment preview`, since `.env.local` isn't uploaded with the build.
 3. `npx eas-cli build --platform ios --profile production`, then `npx eas-cli submit --platform ios` to send it to App Store Connect and TestFlight.
 
 App Store text and privacy answers are in [`store/app-store.md`](store/app-store.md).
