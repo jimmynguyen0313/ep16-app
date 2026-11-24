@@ -1,19 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DateField } from '@/components/date-field';
+import { SheetScroll, SheetTextInput } from '@/components/sheet-scroll';
 import { StarInput } from '@/components/stars';
 import { Loading, Message, T } from '@/components/ui';
 import { Fonts, Radius, Space, useColors } from '@/constants/theme';
@@ -55,82 +46,80 @@ function RewatchFormView({ showId, title, existing }: { showId: number; title: s
   const error = save.error ?? remove.error;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
-        <View>
-          <T v="label" muted>
-            {existing ? 'Edit rewatch' : 'Log a rewatch'}
+    <SheetScroll contentContainerStyle={styles.wrap}>
+      <View>
+        <T v="label" muted>
+          {existing ? 'Edit rewatch' : 'Log a rewatch'}
+        </T>
+        <T v="title">{title}</T>
+      </View>
+
+      <DateField label="Rewatched on" value={form.watchedOn} onChange={(watchedOn) => set({ watchedOn })} />
+
+      <View style={styles.field}>
+        <T v="label" muted>
+          Rating this time
+        </T>
+        <View style={styles.ratingRow}>
+          <StarInput value={form.rating} onChange={(rating) => set({ rating })} />
+          <T v="heading" muted style={{ minWidth: 34 }}>
+            {form.rating ? form.rating.toFixed(1) : ''}
           </T>
-          <T v="title">{title}</T>
         </View>
+      </View>
 
-        <DateField label="Rewatched on" value={form.watchedOn} onChange={(watchedOn) => set({ watchedOn })} />
+      <View style={styles.field}>
+        <T v="label" muted>
+          Notes
+        </T>
+        <SheetTextInput
+          value={form.note}
+          onChangeText={(note) => set({ note })}
+          placeholder="Did it hit differently the second time?"
+          placeholderTextColor={c.muted}
+          multiline
+          maxLength={2000}
+          accessibilityLabel="Notes"
+          style={[
+            styles.note,
+            { color: c.ink, backgroundColor: c.surface, borderColor: c.line, fontFamily: Fonts.sans },
+          ]}
+        />
+      </View>
 
-        <View style={styles.field}>
-          <T v="label" muted>
-            Rating this time
-          </T>
-          <View style={styles.ratingRow}>
-            <StarInput value={form.rating} onChange={(rating) => set({ rating })} />
-            <T v="heading" muted style={{ minWidth: 34 }}>
-              {form.rating ? form.rating.toFixed(1) : ''}
-            </T>
-          </View>
-        </View>
+      {error ? (
+        <T v="small" style={{ color: c.danger }} accessibilityRole="alert">
+          {error.message}
+        </T>
+      ) : null}
 
-        <View style={styles.field}>
-          <T v="label" muted>
-            Notes
-          </T>
-          <TextInput
-            value={form.note}
-            onChangeText={(note) => set({ note })}
-            placeholder="Did it hit differently the second time?"
-            placeholderTextColor={c.muted}
-            multiline
-            maxLength={2000}
-            accessibilityLabel="Notes"
-            style={[
-              styles.note,
-              { color: c.ink, backgroundColor: c.surface, borderColor: c.line, fontFamily: Fonts.sans },
-            ]}
-          />
-        </View>
+      <Pressable
+        accessibilityRole="button"
+        disabled={save.isPending}
+        onPress={() => save.mutateAsync({ showId, id: existing?.id, form }).then(close, () => {})}
+        style={({ pressed }) => [
+          styles.primary,
+          { backgroundColor: c.accent, opacity: pressed || save.isPending ? 0.7 : 1 },
+        ]}>
+        {save.isPending ? (
+          <ActivityIndicator color={c.onAccent} />
+        ) : (
+          <Text style={{ color: c.onAccent, fontFamily: Fonts.sans, fontSize: 17 }}>
+            {existing ? 'Save changes' : 'Log rewatch'}
+          </Text>
+        )}
+      </Pressable>
 
-        {error ? (
-          <T v="small" style={{ color: c.danger }} accessibilityRole="alert">
-            {error.message}
-          </T>
-        ) : null}
-
+      {existing ? (
         <Pressable
           accessibilityRole="button"
-          disabled={save.isPending}
-          onPress={() => save.mutateAsync({ showId, id: existing?.id, form }).then(close, () => {})}
-          style={({ pressed }) => [
-            styles.primary,
-            { backgroundColor: c.accent, opacity: pressed || save.isPending ? 0.7 : 1 },
-          ]}>
-          {save.isPending ? (
-            <ActivityIndicator color={c.onAccent} />
-          ) : (
-            <Text style={{ color: c.onAccent, fontFamily: Fonts.sans, fontSize: 17 }}>
-              {existing ? 'Save changes' : 'Log rewatch'}
-            </Text>
-          )}
+          disabled={remove.isPending}
+          onPress={() => remove.mutateAsync(existing.id).then(close, () => {})}
+          style={styles.remove}>
+          <T style={{ color: c.danger }}>{remove.isPending ? 'Removing…' : 'Remove this rewatch'}</T>
         </Pressable>
-
-        {existing ? (
-          <Pressable
-            accessibilityRole="button"
-            disabled={remove.isPending}
-            onPress={() => remove.mutateAsync(existing.id).then(close, () => {})}
-            style={styles.remove}>
-            <T style={{ color: c.danger }}>{remove.isPending ? 'Removing…' : 'Remove this rewatch'}</T>
-          </Pressable>
-        ) : null}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      ) : null}
+    </SheetScroll>
   );
 }
 

@@ -1,19 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DateField } from '@/components/date-field';
+import { SheetScroll, SheetTextInput } from '@/components/sheet-scroll';
 import { SignIn } from '@/components/sign-in';
 import { StarInput } from '@/components/stars';
 import { Loading, Message, T } from '@/components/ui';
@@ -73,127 +64,125 @@ function LogForm({ show: d, entry }: { show: ShowDetail; entry: DiaryEntry | und
   const onRemove = () => remove.mutateAsync(d.id).then(close, () => {});
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={styles.wrap} keyboardShouldPersistTaps="handled">
-        <View>
-          <T v="label" muted>
-            {entry ? 'Edit your log' : 'Add to your diary'}
-          </T>
-          <T v="title">{d.name}</T>
-        </View>
+    <SheetScroll contentContainerStyle={styles.wrap}>
+      <View>
+        <T v="label" muted>
+          {entry ? 'Edit your log' : 'Add to your diary'}
+        </T>
+        <T v="title">{d.name}</T>
+      </View>
 
-        <View style={[styles.segment, { borderColor: c.line }]} accessibilityRole="radiogroup">
-          {(Object.keys(STATUS_LABEL) as Status[]).map((s) => {
-            const on = form.status === s;
-            return (
-              <Pressable
-                key={s}
-                accessibilityRole="radio"
-                accessibilityState={{ selected: on }}
-                onPress={() => set({ status: s })}
-                style={[styles.segmentItem, { backgroundColor: on ? c.ink : 'transparent' }]}>
-                <Text style={{ fontFamily: Fonts.sans, fontSize: 15, color: on ? c.bg : c.muted }}>
-                  {STATUS_LABEL[s]}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+      <View style={[styles.segment, { borderColor: c.line }]} accessibilityRole="radiogroup">
+        {(Object.keys(STATUS_LABEL) as Status[]).map((s) => {
+          const on = form.status === s;
+          return (
+            <Pressable
+              key={s}
+              accessibilityRole="radio"
+              accessibilityState={{ selected: on }}
+              onPress={() => set({ status: s })}
+              style={[styles.segmentItem, { backgroundColor: on ? c.ink : 'transparent' }]}>
+              <Text style={{ fontFamily: Fonts.sans, fontSize: 15, color: on ? c.bg : c.muted }}>
+                {STATUS_LABEL[s]}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
-        {form.status === 'watching' ? (
-          <View style={styles.field}>
-            <T v="label" muted>
-              Progress
-            </T>
-            <View style={styles.stepper}>
-              <StepButton
-                label="−"
-                a11y="One episode back"
-                onPress={() => set({ episodesWatched: Math.max(0, form.episodesWatched - 1) })}
-              />
-              <T v="heading" style={{ minWidth: 150, textAlign: 'center' }}>
-                Episode {form.episodesWatched}
-                {total ? ` of ${total}` : ''}
-              </T>
-              <StepButton
-                label="+"
-                a11y="One more episode"
-                onPress={() =>
-                  set({ episodesWatched: total ? Math.min(total, form.episodesWatched + 1) : form.episodesWatched + 1 })
-                }
-              />
-            </View>
-          </View>
-        ) : null}
-
-        {form.status !== 'want' ? (
-          <View style={styles.field}>
-            <T v="label" muted>
-              Your rating
-            </T>
-            <View style={styles.ratingRow}>
-              <StarInput value={form.rating} onChange={(rating) => set({ rating })} />
-              <T v="heading" muted style={{ minWidth: 34 }}>
-                {form.rating ? form.rating.toFixed(1) : ''}
-              </T>
-            </View>
-            <T v="small" muted>
-              Tap the left half of a star for a half star.
-            </T>
-          </View>
-        ) : null}
-
-        <DateField label={DATE_LABEL[form.status]} value={form.loggedOn} onChange={(loggedOn) => set({ loggedOn })} />
-
+      {form.status === 'watching' ? (
         <View style={styles.field}>
           <T v="label" muted>
-            Notes
+            Progress
           </T>
-          <TextInput
-            value={form.note}
-            onChangeText={(note) => set({ note })}
-            placeholder="What stayed with you? Favorite scene, the second lead you were rooting for…"
-            placeholderTextColor={c.muted}
-            multiline
-            maxLength={5000}
-            accessibilityLabel="Notes"
-            style={[
-              styles.note,
-              { color: c.ink, backgroundColor: c.surface, borderColor: c.line, fontFamily: Fonts.sans },
-            ]}
-          />
+          <View style={styles.stepper}>
+            <StepButton
+              label="−"
+              a11y="One episode back"
+              onPress={() => set({ episodesWatched: Math.max(0, form.episodesWatched - 1) })}
+            />
+            <T v="heading" style={{ minWidth: 150, textAlign: 'center' }}>
+              Episode {form.episodesWatched}
+              {total ? ` of ${total}` : ''}
+            </T>
+            <StepButton
+              label="+"
+              a11y="One more episode"
+              onPress={() =>
+                set({ episodesWatched: total ? Math.min(total, form.episodesWatched + 1) : form.episodesWatched + 1 })
+              }
+            />
+          </View>
         </View>
+      ) : null}
 
-        {error ? (
-          <T v="small" style={{ color: c.danger }} accessibilityRole="alert">
-            {error.message}
+      {form.status !== 'want' ? (
+        <View style={styles.field}>
+          <T v="label" muted>
+            Your rating
           </T>
-        ) : null}
+          <View style={styles.ratingRow}>
+            <StarInput value={form.rating} onChange={(rating) => set({ rating })} />
+            <T v="heading" muted style={{ minWidth: 34 }}>
+              {form.rating ? form.rating.toFixed(1) : ''}
+            </T>
+          </View>
+          <T v="small" muted>
+            Tap the left half of a star for a half star.
+          </T>
+        </View>
+      ) : null}
 
-        <Pressable
-          accessibilityRole="button"
-          disabled={save.isPending}
-          onPress={onSave}
-          style={({ pressed }) => [
-            styles.primary,
-            { backgroundColor: c.accent, opacity: pressed || save.isPending ? 0.7 : 1 },
-          ]}>
-          {save.isPending ? (
-            <ActivityIndicator color={c.onAccent} />
-          ) : (
-            <Text style={{ color: c.onAccent, fontFamily: Fonts.sans, fontSize: 17 }}>
-              {entry ? 'Save changes' : 'Add to diary'}
-            </Text>
-          )}
+      <DateField label={DATE_LABEL[form.status]} value={form.loggedOn} onChange={(loggedOn) => set({ loggedOn })} />
+
+      <View style={styles.field}>
+        <T v="label" muted>
+          Notes
+        </T>
+        <SheetTextInput
+          value={form.note}
+          onChangeText={(note) => set({ note })}
+          placeholder="What stayed with you? Favorite scene, the second lead you were rooting for…"
+          placeholderTextColor={c.muted}
+          multiline
+          maxLength={5000}
+          accessibilityLabel="Notes"
+          style={[
+            styles.note,
+            { color: c.ink, backgroundColor: c.surface, borderColor: c.line, fontFamily: Fonts.sans },
+          ]}
+        />
+      </View>
+
+      {error ? (
+        <T v="small" style={{ color: c.danger }} accessibilityRole="alert">
+          {error.message}
+        </T>
+      ) : null}
+
+      <Pressable
+        accessibilityRole="button"
+        disabled={save.isPending}
+        onPress={onSave}
+        style={({ pressed }) => [
+          styles.primary,
+          { backgroundColor: c.accent, opacity: pressed || save.isPending ? 0.7 : 1 },
+        ]}>
+        {save.isPending ? (
+          <ActivityIndicator color={c.onAccent} />
+        ) : (
+          <Text style={{ color: c.onAccent, fontFamily: Fonts.sans, fontSize: 17 }}>
+            {entry ? 'Save changes' : 'Add to diary'}
+          </Text>
+        )}
+      </Pressable>
+
+      {entry ? (
+        <Pressable accessibilityRole="button" disabled={remove.isPending} onPress={onRemove} style={styles.remove}>
+          <T style={{ color: c.danger }}>{remove.isPending ? 'Removing…' : 'Remove from diary'}</T>
         </Pressable>
-
-        {entry ? (
-          <Pressable accessibilityRole="button" disabled={remove.isPending} onPress={onRemove} style={styles.remove}>
-            <T style={{ color: c.danger }}>{remove.isPending ? 'Removing…' : 'Remove from diary'}</T>
-          </Pressable>
-        ) : null}
-      </ScrollView>
-    </KeyboardAvoidingView>
+      ) : null}
+    </SheetScroll>
   );
 }
 

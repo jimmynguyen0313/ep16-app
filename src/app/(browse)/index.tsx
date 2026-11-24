@@ -80,7 +80,7 @@ export default function BrowseScreen() {
   );
 
   const header = (
-    <View style={styles.header}>
+    <View style={[styles.header, { width: contentWidth }]}>
       {Platform.OS === 'web' ? (
         <TextInput
           value={query}
@@ -144,6 +144,9 @@ export default function BrowseScreen() {
       keyExtractor={(s) => String(s.id)}
       contentInsetAdjustmentBehavior="automatic"
       keyboardDismissMode="on-drag"
+      // Only ever scroll up and down, so the grid can't slide sideways on iOS.
+      alwaysBounceHorizontal={false}
+      directionalLockEnabled
       keyboardShouldPersistTaps="handled"
       ListHeaderComponent={header}
       columnWrapperStyle={{ gap, paddingHorizontal: Space.lg }}
