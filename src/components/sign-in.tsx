@@ -11,6 +11,12 @@ const CODE = /^\d{6,10}$/;
 
 type Mode = 'signin' | 'signup' | 'reset';
 
+/**
+ * Off until Supabase has a real email sender (custom SMTP) and the Reset password template
+ * includes the code. Supabase's built-in sender only reaches the project team's addresses.
+ */
+const PASSWORD_RESET = false;
+
 /** Email and password sign-in, with switches to create an account or reset a forgotten password. */
 export function SignIn({ title = 'Sign in to keep your diary', subtitle }: { title?: string; subtitle?: string }) {
   const c = useColors();
@@ -184,7 +190,7 @@ export function SignIn({ title = 'Sign in to keep your diary', subtitle }: { tit
       <View style={styles.links}>
         {mode === 'signin' ? (
           <>
-            <Link label="Forgot password?" onPress={() => go('reset')} />
+            {PASSWORD_RESET ? <Link label="Forgot password?" onPress={() => go('reset')} /> : null}
             <Link prefix="New to Ep.16? " label="Create an account" onPress={() => go('signup')} />
           </>
         ) : mode === 'signup' ? (
