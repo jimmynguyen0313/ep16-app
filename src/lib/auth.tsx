@@ -76,3 +76,20 @@ export async function signInWithPassword(email: string, password: string) {
   const { error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) throw error;
 }
+
+/**
+ * Email a password-reset code. Supabase's "Reset password" email template must include
+ * {{ .Token }} (see the README), because the app takes the code rather than a link.
+ */
+export async function sendPasswordReset(email: string) {
+  const { error } = await supabase.auth.resetPasswordForEmail(email);
+  if (error) throw error;
+}
+
+/** Check the emailed code, which signs the person in, then set their new password. */
+export async function resetPassword(email: string, code: string, password: string) {
+  const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'recovery' });
+  if (error) throw error;
+  const { error: updateError } = await supabase.auth.updateUser({ password });
+  if (updateError) throw updateError;
+}
