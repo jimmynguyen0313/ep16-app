@@ -13,12 +13,14 @@ import {
   View,
 } from 'react-native';
 
+import { DateField } from '@/components/date-field';
 import { SignIn } from '@/components/sign-in';
 import { StarInput } from '@/components/stars';
 import { Loading, Message, T } from '@/components/ui';
 import { Fonts, Radius, Space, useColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import {
+  DATE_LABEL,
   formFromEntry,
   STATUS_LABEL,
   useDeleteEntry,
@@ -137,6 +139,8 @@ function LogForm({ show: d, entry }: { show: ShowDetail; entry: DiaryEntry | und
             </T>
           </View>
         ) : null}
+
+        <DateField label={DATE_LABEL[form.status]} value={form.loggedOn} onChange={(loggedOn) => set({ loggedOn })} />
 
         <View style={styles.field}>
           <T v="label" muted>

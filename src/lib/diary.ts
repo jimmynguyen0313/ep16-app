@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/lib/auth';
+import { todayISO } from '@/lib/dates';
 import { supabase } from '@/lib/supabase';
 import type { ShowDetail } from '@/lib/tmdb';
 
@@ -39,9 +40,13 @@ export type EntryForm = {
   loggedOn: string;
 };
 
-export const todayISO = () => {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+export { todayISO };
+
+/** What logged_on means for each status. */
+export const DATE_LABEL: Record<Status, string> = {
+  watched: 'Finished on',
+  watching: 'Started on',
+  want: 'Added on',
 };
 
 export function formFromEntry(entry: DiaryEntry | undefined): EntryForm {

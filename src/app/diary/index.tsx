@@ -7,6 +7,7 @@ import { StarText } from '@/components/stars';
 import { Chip, Loading, Message, Poster, T } from '@/components/ui';
 import { Space, useColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
+import { formatDate } from '@/lib/dates';
 import { diaryStats, STATUS_LABEL, useDiary, type DiaryEntry, type Status } from '@/lib/diary';
 
 type Filter = 'all' | Status;
@@ -16,7 +17,6 @@ const FILTERS: { key: Filter; label: string }[] = [
   { key: 'watched', label: 'Watched' },
   { key: 'want', label: 'Want to watch' },
 ];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 export default function DiaryScreen() {
   const c = useColors();
@@ -113,7 +113,6 @@ function Stat({ n, label }: { n: number | string; label: string }) {
 
 function Row({ entry: e }: { entry: DiaryEntry }) {
   const c = useColors();
-  const [y, m, d] = e.logged_on.split('-');
   const detail =
     e.status === 'watching'
       ? `Episode ${e.episodes_watched}${e.total_episodes ? ` of ${e.total_episodes}` : ''}`
@@ -144,7 +143,7 @@ function Row({ entry: e }: { entry: DiaryEntry }) {
       <View style={{ alignItems: 'flex-end', gap: 4 }}>
         <StarText rating={e.rating} />
         <T v="small" muted style={{ fontVariant: ['tabular-nums'] }}>
-          {MONTHS[Number(m) - 1]} {Number(d)}, {y}
+          {formatDate(e.logged_on)}
         </T>
       </View>
       <View
