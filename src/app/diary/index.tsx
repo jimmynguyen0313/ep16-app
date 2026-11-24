@@ -4,11 +4,12 @@ import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } fro
 
 import { SignIn } from '@/components/sign-in';
 import { StarText } from '@/components/stars';
-import { Chip, Loading, Message, Poster, T } from '@/components/ui';
+import { Chip, Headshot, Loading, Message, Poster, T } from '@/components/ui';
 import { Space, useColors } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { formatDate } from '@/lib/dates';
 import { diaryStats, STATUS_LABEL, useDiary, type DiaryEntry, type Status } from '@/lib/diary';
+import { useFavorites } from '@/lib/favorites';
 import { rewatchCounts, useRewatches } from '@/lib/rewatches';
 
 type Filter = 'all' | Status;
@@ -65,6 +66,7 @@ export default function DiaryScreen() {
           {stats.average != null ? <Stat n={stats.average.toFixed(1)} label="avg rating" /> : null}
         </View>
       ) : null}
+      <FavoriteActors />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: Space.sm }}>
         {FILTERS.map((f) => (
           <Chip key={f.key} label={f.label} selected={filter === f.key} onPress={() => setFilter(f.key)} />
@@ -106,6 +108,34 @@ export default function DiaryScreen() {
         )
       }
     />
+  );
+}
+
+function FavoriteActors() {
+  const favorites = useFavorites();
+  const list = favorites.data ?? [];
+  if (!list.length) return null;
+  return (
+    <View style={{ gap: Space.sm }}>
+      <T v="label" muted>
+        Favorite actors
+      </T>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: Space.md }}>
+        {list.map((a) => (
+          <Pressable
+            key={a.person_id}
+            accessibilityRole="button"
+            accessibilityLabel={a.name}
+            onPress={() => router.push({ pathname: '/actor/[id]', params: { id: String(a.person_id) } })}
+            style={({ pressed }) => [styles.actor, { opacity: pressed ? 0.7 : 1 }]}>
+            <Headshot path={a.profile_path} name={a.name} size={64} />
+            <T v="small" numberOfLines={2} style={{ textAlign: 'center' }}>
+              {a.name}
+            </T>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -169,6 +199,7 @@ const styles = StyleSheet.create({
   pad: { padding: Space.lg },
   list: { paddingBottom: Space.xxl, width: '100%', maxWidth: 760, alignSelf: 'center' },
   header: { paddingHorizontal: Space.lg, paddingTop: Space.sm, paddingBottom: Space.lg, gap: Space.lg },
+  actor: { width: 76, alignItems: 'center', gap: 4 },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.lg },
   row: {
     flexDirection: 'row',

@@ -1,11 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
-import { Link, Stack, useLocalSearchParams } from 'expo-router';
+import { Link, router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { Headshot, Loading, Message, Poster, T } from '@/components/ui';
-import { Space, useColors } from '@/constants/theme';
-import { kdramaCredits, person, yearOf, type TvCredit } from '@/lib/tmdb';
+import { Radius, Space, useColors } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
+import { useFavorites, useToggleFavorite } from '@/lib/favorites';
+import { kdramaCredits, person, yearOf, type Person, type TvCredit } from '@/lib/tmdb';
 
 /** An actor's page: photo, short bio, and every K-drama TMDB credits them in. */
 export default function ActorScreen() {
@@ -51,6 +53,7 @@ export default function ActorScreen() {
           ) : null}
         </View>
       </View>
+      <FavoriteButton actor={a} />
       {a.biography ? (
         <Pressable
           onPress={() => setExpanded((e) => !e)}
@@ -98,6 +101,41 @@ export default function ActorScreen() {
   );
 }
 
+/** Heart toggle for favorite actors; signed-out taps go to the Account tab to sign in. */
+function FavoriteButton({ actor }: { actor: Person }) {
+  const c = useColors();
+  const { session } = useAuth();
+  const favorites = useFavorites();
+  const toggle = useToggleFavorite();
+  const on = !!favorites.data?.some((f) => f.person_id === actor.id);
+  return (
+    <View style={{ gap: Space.xs }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ selected: on }}
+        accessibilityLabel={on ? `${actor.name} is a favorite. Remove` : `Add ${actor.name} to favorite actors`}
+        onPress={() => (session ? toggle.mutate({ actor, favorite: !on }) : router.navigate('/account'))}
+        style={({ pressed }) => [
+          styles.favorite,
+          on
+            ? { backgroundColor: c.surface, borderColor: c.line }
+            : { backgroundColor: c.accent, borderColor: c.accent },
+          { opacity: pressed ? 0.75 : 1 },
+        ]}>
+        <T style={{ color: on ? c.danger : c.onAccent }}>{on ? '♥' : '♡'}</T>
+        <T style={{ color: on ? c.ink : c.onAccent }}>
+          {on ? 'Favorite actor' : session ? 'Add to favorite actors' : 'Sign in to save favorite actors'}
+        </T>
+      </Pressable>
+      {toggle.error ? (
+        <T v="small" style={{ color: c.danger }} accessibilityRole="alert">
+          {toggle.error.message}
+        </T>
+      ) : null}
+    </View>
+  );
+}
+
 function CreditTile({ credit, width }: { credit: TvCredit; width: number }) {
   const year = yearOf(credit.first_air_date);
   return (
@@ -129,4 +167,14 @@ const styles = StyleSheet.create({
   },
   top: { flexDirection: 'row', alignItems: 'center', gap: Space.lg },
   titles: { flex: 1, minWidth: 0, gap: 2 },
+  favorite: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: Space.sm,
+    borderWidth: 1,
+    borderRadius: Radius.pill,
+    paddingHorizontal: Space.lg,
+    paddingVertical: 8,
+  },
 });
