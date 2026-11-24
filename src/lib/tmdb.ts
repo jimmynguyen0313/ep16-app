@@ -26,6 +26,7 @@ export type ShowSummary = {
   genre_ids: number[];
   overview: string;
   vote_average: number;
+  vote_count?: number;
 };
 
 export type Paged<T> = { page: number; total_pages: number; total_results: number; results: T[] };
@@ -122,6 +123,11 @@ export function tvGenres() {
 
 export function showDetail(id: number) {
   return get<ShowDetail>(`/tv/${id}`, { append_to_response: 'aggregate_credits' });
+}
+
+/** TMDB's "if you liked this" list for a show. Mixed languages; filter with isKdrama. */
+export function recommendations(id: number) {
+  return get<Paged<ShowSummary>>(`/tv/${id}/recommendations`);
 }
 
 export function person(id: number) {

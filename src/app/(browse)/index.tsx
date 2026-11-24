@@ -1,5 +1,5 @@
-import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
-import { Link, Stack } from 'expo-router';
+import { useInfiniteQuery, useQueries, useQuery } from '@tanstack/react-query';
+import { Link, router, Stack } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,10 +16,14 @@ import {
 
 import { Chip, Loading, Message, Poster, T } from '@/components/ui';
 import { Fonts, Radius, Space, useColors } from '@/constants/theme';
+import { useAuth } from '@/lib/auth';
+import { useDiary } from '@/lib/diary';
+import { pickSeeds, rankSuggestions } from '@/lib/for-you';
 import {
   discoverKdramas,
   hasToken,
   NON_DRAMA_GENRES,
+  recommendations,
   searchKdramas,
   tvGenres,
   yearOf,
@@ -95,6 +99,7 @@ export default function BrowseScreen() {
           ]}
         />
       ) : null}
+      {!q && !genre ? <ForYou /> : null}
       {!q ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
           <Chip label="Popular" selected={!genre} onPress={() => setGenre(undefined)} />
@@ -183,6 +188,64 @@ export default function BrowseScreen() {
   );
 }
 
+/** Suggestions from TMDB's recommendations for the dramas you rated highest. Signed in only. */
+function ForYou() {
+  const { session } = useAuth();
+  const diary = useDiary();
+  const entries = useMemo(() => diary.data ?? [], [diary.data]);
+  const seeds = useMemo(() => pickSeeds(entries), [entries]);
+  const recs = useQueries({
+    queries: seeds.map((s) => ({
+      queryKey: ['recs', s.show_id],
+      queryFn: () => recommendations(s.show_id),
+      staleTime: 1000 * 60 * 60 * 24,
+    })),
+  });
+  const loading = recs.some((r) => r.isPending);
+  const suggestions = loading
+    ? []
+    : rankSuggestions(
+        seeds.map((seed, i) => ({ seed, results: recs[i].data?.results ?? [] })),
+        new Set(entries.map((e) => e.show_id)),
+      );
+
+  if (!session || !seeds.length) return null;
+  return (
+    <View style={{ gap: Space.sm, marginBottom: Space.sm }}>
+      <T v="heading">For you</T>
+      {loading ? (
+        <ActivityIndicator style={{ alignSelf: 'flex-start', height: 60 }} />
+      ) : suggestions.length ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: Space.md, paddingRight: Space.lg }}>
+          {suggestions.map(({ show, because }) => (
+            <Pressable
+              key={show.id}
+              accessibilityRole="button"
+              accessibilityLabel={`${show.name}. Because you liked ${because}`}
+              onPress={() => router.push({ pathname: '/drama/[id]', params: { id: String(show.id) } })}
+              style={({ pressed }) => [styles.forYou, { opacity: pressed ? 0.75 : 1 }]}>
+              <Poster path={show.poster_path} title={show.name} width={104} />
+              <T v="small" numberOfLines={2}>
+                {show.name}
+              </T>
+              <T v="small" muted numberOfLines={2}>
+                Because you liked {because}
+              </T>
+            </Pressable>
+          ))}
+        </ScrollView>
+      ) : (
+        <T v="small" muted>
+          Rate a few more dramas and suggestions will show up here.
+        </T>
+      )}
+    </View>
+  );
+}
+
 function Tile({ show, width }: { show: ShowSummary; width: number }) {
   return (
     <View style={{ width, marginBottom: Space.lg }}>
@@ -213,6 +276,7 @@ const styles = StyleSheet.create({
     paddingBottom: Space.lg,
     gap: Space.md,
   },
+  forYou: { width: 104, gap: 4 },
   chips: { gap: Space.sm, paddingRight: Space.lg },
   webSearch: {
     borderWidth: 1,
