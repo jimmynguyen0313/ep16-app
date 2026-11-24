@@ -15,6 +15,7 @@ export default function DiaryLayout() {
         contentStyle: { backgroundColor: c.bg },
       }}>
       <Stack.Screen name="index" options={{ title: 'My diary', headerLargeTitle: true }} />
+      <Stack.Screen name="wrapped" options={{ title: 'Wrapped', headerBackButtonDisplayMode: 'minimal' }} />
     </Stack>
   );
 }

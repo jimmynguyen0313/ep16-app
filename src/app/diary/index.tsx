@@ -66,6 +66,25 @@ export default function DiaryScreen() {
           {stats.average != null ? <Stat n={stats.average.toFixed(1)} label="avg rating" /> : null}
         </View>
       ) : null}
+      {stats.watched || (rewatches.data ?? []).length ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open Wrapped, your year in K-dramas"
+          onPress={() => router.push('/diary/wrapped')}
+          style={({ pressed }) => [styles.wrapped, { backgroundColor: c.accent, opacity: pressed ? 0.8 : 1 }]}>
+          <View style={{ flex: 1 }}>
+            <T v="label" style={{ color: c.onAccent, opacity: 0.8 }}>
+              Wrapped
+            </T>
+            <T v="heading" style={{ color: c.onAccent }}>
+              Your year in K-dramas
+            </T>
+          </View>
+          <T v="title" style={{ color: c.onAccent }}>
+            ›
+          </T>
+        </Pressable>
+      ) : null}
       <FavoriteActors />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: Space.sm }}>
         {FILTERS.map((f) => (
@@ -199,6 +218,13 @@ const styles = StyleSheet.create({
   pad: { padding: Space.lg },
   list: { paddingBottom: Space.xxl, width: '100%', maxWidth: 760, alignSelf: 'center' },
   header: { paddingHorizontal: Space.lg, paddingTop: Space.sm, paddingBottom: Space.lg, gap: Space.lg },
+  wrapped: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    paddingHorizontal: Space.lg,
+    paddingVertical: Space.md,
+  },
   actor: { width: 76, alignItems: 'center', gap: 4 },
   stats: { flexDirection: 'row', flexWrap: 'wrap', gap: Space.lg },
   row: {
