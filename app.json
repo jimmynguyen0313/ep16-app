@@ -46,6 +46,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "owner": "milkteaaddict123",
+    "extra": {
+      "eas": {
+        "projectId": "4168f687-d17a-4d8b-9e14-8ace04e0a5db"
+      }
     }
   }
 }
